@@ -1,6 +1,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>in.javahome</groupId>
@@ -14,10 +15,9 @@
         <docker.image.prefix>kammana</docker.image.prefix>
         <sonar.host.url>http://3.83.18.215:9000/</sonar.host.url>
 
-        <!-- ✅ Set Java version here -->
+        <!-- ✅ Set Java version here (change to 17 if Jenkins runs JDK 17) -->
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
-        <!-- Or use 17 if Jenkins runs JDK 17 -->
     </properties>
 
     <dependencies>
@@ -31,14 +31,21 @@
 
     <build>
         <plugins>
-            <!-- ✅ Compiler plugin configuration -->
+            <!-- ✅ Modern compiler plugin -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.11.0</version>
                 <configuration>
-                    <release>11</release> <!-- Or 17 depending on your JDK -->
+                    <release>11</release> <!-- Or 17 depending on Jenkins JDK -->
                 </configuration>
+            </plugin>
+
+            <!-- ✅ Modern WAR plugin -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-war-plugin</artifactId>
+                <version>3.4.0</version>
             </plugin>
         </plugins>
     </build>

@@ -6,50 +6,67 @@
 
     <groupId>in.javahome</groupId>
     <artifactId>myweb</artifactId>
+    <version>12.2.1-SNAPSHOT</version> <!-- 🔹 SNAPSHOT for dev, bump for release -->
     <packaging>war</packaging>
-    <version>12.2.0</version>
+
     <name>Mindcircuit Home myweb</name>
     <url>http://maven.apache.org</url>
 
     <properties>
-        <docker.image.prefix>kammana</docker.image.prefix>
-        <sonar.host.url>http://3.83.18.215:9000/</sonar.host.url>
-
-        <!-- ✅ Set Java version here (change to 17 if Jenkins runs JDK 17) -->
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
+        <docker.image.prefix>kammana</docker.image.prefix>
+        <sonar.host.url>http://3.83.18.215:9000/</sonar.host.url>
+        <junit.version>5.10.0</junit.version>
     </properties>
 
     <dependencies>
+        <!-- ✅ Modern JUnit 5 -->
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>3.8.1</version>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
 
     <build>
         <plugins>
-            <!-- ✅ Modern compiler plugin -->
+            <!-- ✅ Compiler plugin -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.11.0</version>
                 <configuration>
-                    <release>11</release> <!-- Or 17 depending on Jenkins JDK -->
+                    <release>11</release> <!-- change to 17 if Jenkins uses JDK 17 -->
                 </configuration>
             </plugin>
 
-            <!-- ✅ Modern WAR plugin -->
+            <!-- ✅ WAR plugin -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-war-plugin</artifactId>
                 <version>3.4.0</version>
             </plugin>
+
+            <!-- ✅ Surefire for JUnit 5 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.1.2</version>
+            </plugin>
+
+            <!-- ✅ Deploy plugin -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <version>3.1.1</version>
+            </plugin>
         </plugins>
     </build>
 
+    <!-- ✅ Nexus repositories -->
     <distributionManagement>
         <snapshotRepository>
             <id>NexusRepo</id>
@@ -64,9 +81,9 @@
 
     <pluginRepositories>
         <pluginRepository>
-            <id>maven1</id>
-            <name>Maven.org</name>
-            <url>http://repo1.maven.org/maven2</url>
+            <id>central</id>
+            <name>Maven Central</name>
+            <url>https://repo.maven.apache.org/maven2</url>
         </pluginRepository>
     </pluginRepositories>
 </project>

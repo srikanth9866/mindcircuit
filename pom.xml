@@ -53,12 +53,12 @@
     <distributionManagement>
         <snapshotRepository>
             <id>NexusRepo</id>
-            <url>http://54.91.100.164:8081/repository/mc-snapshot/</url>
+            <url>http://54.91.100.164:8081/repository/mc-snapshots/</url>
         </snapshotRepository>
 
         <repository>
             <id>NexusRepo</id>
-            <url>http://54.91.100.164:8081/repository/mc-release/</url>
+            <url>http://54.91.100.164:8081/repository/mc-releases/</url>
         </repository>
     </distributionManagement>
 

@@ -1,14 +1,18 @@
 package in.javahome.myweb.controller;
 
-import junit.framework.Assert;
-import junit.framework.TestCase;
+import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 
-public class CalculatorTest extends TestCase {
-	Calculator cal = new Calculator();
-	public void testAdd(){
-		Assert.assertEquals(cal.add(10, 20), 30);
-	}
-	public void testMultiply(){
-		Assert.assertEquals(cal.multiply(10, 20), 200);
-	}
+public class CalculatorTest {
+    Calculator cal = new Calculator();
+
+    @Test
+    public void testAdd() {
+        assertEquals(30, cal.add(10, 20));
+    }
+
+    @Test
+    public void testMultiply() {
+        assertEquals(200, cal.multiply(10, 20));
+    }
 }

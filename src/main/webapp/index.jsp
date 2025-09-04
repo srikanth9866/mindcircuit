@@ -17,6 +17,6 @@
     </style>
 </head>
 <body>
-    <h1> successfully migrated and deploy war file in tomcat </h1>
+    <h1> successfully migrated and deploy war file in tomcat and added logic for different path for tomcat </h1>
 </body>
 </html>

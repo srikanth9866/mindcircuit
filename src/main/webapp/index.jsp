@@ -17,6 +17,6 @@
     </style>
 </head>
 <body>
-    <h1> PRACTICING JENKINS PIPELINES MIGRATING TO GITHUB_ACTIONS</h1>
+    <h1> successfully migrated and deploy war file in tomcat </h1>
 </body>
 </html>

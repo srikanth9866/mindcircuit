@@ -22,17 +22,39 @@ jobs:
         with:
           fetch-depth: 0
 
-      # === Configure AWS credentials via OIDC ===
-      - name: Configure AWS credentials
+      # === Configure temporary AWS credentials via OIDC ===
+      # Needed to access Secrets Manager
+      - name: Assume role to access AWS Secrets
         uses: aws-actions/configure-aws-credentials@v2
         with:
           role-to-assume: arn:aws:iam::707479681391:role/aws-secerts-githhubs111
           role-session-name: GitHubActionsSession
           aws-region: us-east-1
 
-      # === Fetch SONAR_HOST_URL from AWS Secrets Manager ===
-      - name: Fetch SONAR_HOST_URL from AWS Secrets Manager
-        id: fetch_sonar
+      # === Fetch AWS credentials from Secrets Manager and configure CLI ===
+      - name: Load AWS credentials from Secrets Manager
+        id: load_aws_keys
+        run: |
+          CREDS=$(aws secretsmanager get-secret-value \
+            --secret-id secert/aws_credentials/github \
+            --query SecretString \
+            --output text)
+
+          echo "$CREDS" > aws-creds.json
+
+          export AWS_ACCESS_KEY_ID=$(jq -r '.AWS_ACCESS_KEY_ID' aws-creds.json)
+          export AWS_SECRET_ACCESS_KEY=$(jq -r '.AWS_SECRET_ACCESS_KEY' aws-creds.json)
+
+          echo "AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID" >> $GITHUB_ENV
+          echo "AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY" >> $GITHUB_ENV
+
+          aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+          aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+          aws configure set default.region us-east-1
+
+      # === Fetch SONAR_HOST_URL from Secrets Manager ===
+      - name: Load SONAR_HOST_URL from Secrets Manager
+        id: sonar_host
         run: |
           SONAR_HOST_URL=$(aws secretsmanager get-secret-value \
             --secret-id secert/sonarurl/github \

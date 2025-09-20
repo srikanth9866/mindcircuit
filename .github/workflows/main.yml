@@ -9,6 +9,10 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
 
+    permissions:
+      id-token: write
+      contents: read
+
     env:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       TOMCAT_MANAGER_URL: http://54.91.100.164:8095/manager/text

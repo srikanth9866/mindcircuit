@@ -1,4 +1,5 @@
 name: CI-CD (Maven + SonarQube + Nexus + Tomcat)
+
 on:
   push:
     branches: [ "main" ]
@@ -7,21 +8,39 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+
     env:
-      SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       TOMCAT_MANAGER_URL: http://54.91.100.164:8095/manager/text
       TOMCAT_USER: ${{ secrets.TOMCAT_USER }}
       TOMCAT_PASSWORD: ${{ secrets.TOMCAT_PASSWORD }}
 
     steps:
-      # === git ===
+      # === Checkout code ===
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      # === java + maven ===
+      # === Configure AWS credentials via OIDC ===
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: arn:aws:iam::707479681391:role/aws-secerts-githhubs111
+          role-session-name: GitHubActionsSession
+          aws-region: us-east-1
+
+      # === Fetch SONAR_HOST_URL from AWS Secrets Manager ===
+      - name: Fetch SONAR_HOST_URL from AWS Secrets Manager
+        id: fetch_sonar
+        run: |
+          SONAR_HOST_URL=$(aws secretsmanager get-secret-value \
+            --secret-id secert/sonarurl/github \
+            --query SecretString \
+            --output text)
+          echo "SONAR_HOST_URL=$SONAR_HOST_URL" >> $GITHUB_ENV
+
+      # === Set up Java 17 ===
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
@@ -29,7 +48,7 @@ jobs:
           java-version: '17'
           cache: 'maven'
 
-      # === settings.xml ===
+      # === Generate Maven settings.xml for Nexus ===
       - name: Generate Maven settings.xml
         run: |
           mkdir -p ~/.m2
@@ -48,21 +67,29 @@ jobs:
           EOF
           echo "Generated ~/.m2/settings.xml"
 
-      # === sonar ===
+      # === SonarQube Scan ===
       - name: SonarQube Scan
         run: |
           mvn -B -DskipTests=true sonar:sonar \
             -Dsonar.host.url="${SONAR_HOST_URL}" \
             -Dsonar.login="${SONAR_TOKEN}"
 
-      # === purge ===
+      # === Purge local Maven repo ===
       - name: Purge local Maven repo
         run: mvn -B dependency:purge-local-repository -DreResolve=true
 
-      # === build ===
+      # === Build the application ===
       - name: Build
         run: mvn -B clean install
 
-      # === nexus deploy ===
+      # === Deploy to Nexus ===
       - name: Deploy to Nexus
         run: mvn -B deploy
+
+      # === Deploy WAR to Tomcat ===
+      - name: Deploy to Tomcat
+        run: |
+          WAR_FILE=$(find target -name "*.war" | head -n 1)
+          curl -v -u $TOMCAT_USER:$TOMCAT_PASSWORD \
+            -T "$WAR_FILE" \
+            "$TOMCAT_MANAGER_URL/deploy?path=/myapp&update=true"

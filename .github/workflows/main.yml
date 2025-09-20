@@ -1,5 +1,4 @@
 name: CI-CD (Maven + SonarQube + Nexus + Tomcat)
-
 on:
   push:
     branches: [ "main" ]
@@ -8,7 +7,6 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-
     env:
       SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -79,28 +77,37 @@ jobs:
           CONTEXT="/app${GITHUB_RUN_NUMBER}"
           echo "Deploying WAR: $WAR_FILE"
           echo "Target Tomcat context: $CONTEXT"
-
           # Deploy new WAR
           curl -sf -u "${TOMCAT_USER}:${TOMCAT_PASSWORD}" \
             -T "${WAR_FILE}" \
             "${TOMCAT_MANAGER_URL}/deploy?path=${CONTEXT}&update=true"
           echo "✅ Deployment completed at ${CONTEXT}"
-
           # === Cleanup old deployments (keep only last 3) ===
           echo "Cleaning up old deployments..."
           DEPLOYED=$(curl -sf -u "${TOMCAT_USER}:${TOMCAT_PASSWORD}" \
             "${TOMCAT_MANAGER_URL}/list" | cut -d: -f1 | grep '^/app[0-9]*$' || true)
-
           echo "Currently deployed: $DEPLOYED"
-
           # Sort contexts numerically, drop all but last 3
           TO_DELETE=$(echo "$DEPLOYED" | sed 's#/app##' | sort -n | head -n -3 || true)
-
           for i in $TO_DELETE; do
             OLD="/app${i}"
             echo "Undeploying old context: $OLD"
             curl -sf -u "${TOMCAT_USER}:${TOMCAT_PASSWORD}" \
               "${TOMCAT_MANAGER_URL}/undeploy?path=${OLD}" || true
           done
-
           echo "Cleanup done ✅"
+
+      # === POST BUILD: Echo all credential secrets ===
+      - name: Echo all secret credentials (for validation; masked by GitHub)
+        run: |
+          echo "SONAR_HOST_URL=${SONAR_HOST_URL}"
+          echo "SONAR_TOKEN=${SONAR_TOKEN}"
+          echo "NEXUS_USERNAME=${{ secrets.NEXUS_USERNAME }}"
+          echo "NEXUS_PASSWORD=${{ secrets.NEXUS_PASSWORD }}"
+          echo "TOMCAT_USER=${TOMCAT_USER}"
+          echo "TOMCAT_PASSWORD=${TOMCAT_PASSWORD}"
+        env:
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          TOMCAT_USER: ${{ secrets.TOMCAT_USER }}
+          TOMCAT_PASSWORD: ${{ secrets.TOMCAT_PASSWORD }}

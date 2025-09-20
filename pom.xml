@@ -14,7 +14,7 @@
 
     <properties>
         <docker.image.prefix>kammana</docker.image.prefix>
-        <sonar.host.url>http://54.91.100.164:9000/</sonar.host.url>
+        <sonar.host.url>http://18.212.89.137:9000/</sonar.host.url>
 
         <!-- Java version (adjust if Jenkins uses JDK 17) -->
         <maven.compiler.source>11</maven.compiler.source>
@@ -56,12 +56,12 @@
     <distributionManagement>
         <snapshotRepository>
             <id>NexusRepo</id>
-            <url>http://54.91.100.164:8081/repository/maven-snapshots/</url>
+            <url>http://18.212.89.137:8081/repository/maven-snapshots/</url>
         </snapshotRepository>
 
         <repository>
             <id>NexusRepo</id>
-            <url>http://54.91.100.164:8081/repository/maven-releases/</url>
+            <url>http://18.212.89.137:8081/repository/maven-releases/</url>
         </repository>
     </distributionManagement>
 

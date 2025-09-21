@@ -1,4 +1,4 @@
-name: CI-CD (AWS Credentials + Terraform)
+name: CI-CD (Terraform with OIDC)
 
 on:
   push:
@@ -6,11 +6,11 @@ on:
   pull_request:
 
 jobs:
-  setup-and-terraform:
+  terraform:
     runs-on: ubuntu-latest
 
     permissions:
-      id-token: write
+      id-token: write       # needed for OIDC federation
       contents: read
 
     steps:
@@ -20,30 +20,13 @@ jobs:
         with:
           fetch-depth: 0
 
-      # === Configure temporary AWS credentials via OIDC ===
-      - name: Assume role to access AWS Secrets
+      # === Configure AWS credentials via OIDC ===
+      - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
           role-to-assume: arn:aws:iam::707479681391:role/aws-secerts-githhubs111
           role-session-name: GitHubActionsSession
           aws-region: us-east-1
-
-      # === Fetch AWS credentials from Secrets Manager and configure CLI ===
-      - name: Load AWS credentials from Secrets Manager
-        id: load_aws_keys
-        run: |
-          CREDS=$(aws secretsmanager get-secret-value \
-            --secret-id secert/aws_credentials/github \
-            --query SecretString \
-            --output text)
-          echo "$CREDS" > aws-creds.json
-          export AWS_ACCESS_KEY_ID=$(jq -r '.AWS_ACCESS_KEY_ID' aws-creds.json)
-          export AWS_SECRET_ACCESS_KEY=$(jq -r '.AWS_SECRET_ACCESS_KEY' aws-creds.json)
-          echo "AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID" >> $GITHUB_ENV
-          echo "AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY" >> $GITHUB_ENV
-          aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
-          aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
-          aws configure set default.region us-east-1
 
       # === Install Terraform ===
       - name: Setup Terraform
@@ -63,7 +46,7 @@ jobs:
       - name: Terraform Plan
         run: terraform plan -out=tfplan
 
-      # === Terraform Apply (optional: only on push to main) ===
+      # === Terraform Apply (only on main branch) ===
       - name: Terraform Apply
         if: github.ref == 'refs/heads/main'
         run: terraform apply -auto-approve tfplan
